@@ -8,20 +8,23 @@ import { OnBoardForm } from "./components/OnBoardForm";
 import { AddClientForm } from "./components/AddClientForm";
 import { AddProjectForm } from "./components/AddProjectForm";
 import ProjectCard from "./components/ProjectCard";
-
+import Logout from "./components/Logout";
+import TitleCard from "./components/TitleCard";
+import { useMutation, useQuery } from "@apollo/client";
+import { ADD_PROJECT } from "./graphQL/project.mutation";
+import { GET_PROJECTS } from "./graphQL/project.query";
 
 function App() {
   const [user, setUser] = useState(localStorage.getItem("user" || {}));
-  const [projects, setProjects] = useState(() => {
-    const stored = localStorage.getItem("projects");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [projects, setProjects] = useState([]);
+
+  const { loading, error, data } = useQuery(GET_PROJECTS);
+  let gql_projects = data?.projects || [];
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) setUser(storedUser);
   }, []);
-  
 
   if (!user || user.name === "") return <OnBoardForm />;
 
@@ -39,16 +42,19 @@ function App() {
           <div className="flex gap-4">
             <AddClientForm />
             <AddProjectForm projects={projects} setProjects={setProjects} />
+            <Logout />
           </div>
         </div>
         <div className="flex flex-wrap md:grid grid-cols-6 gap-8 p-8 grow h-full">
-          <main className="w-full md:col-span-3 shadow-accent border-2 rounded-lg bg-white p-4 text-start">
-            <ClientsTable className="text-center" />
+          <main className="w-full md:col-span-3">
+            <TitleCard title='Clients' />
+            <ClientsTable className="text-start p-4 my-4 shadow-accent border-2 rounded-lg bg-white" />
           </main>
           <aside className="w-full md:col-span-3">
-            <div className="grid grid-cols-2 gap-2 grid-flow-row">
-              {projects &&
-                projects.map((project) => {
+            <TitleCard title="Projects" />
+            <div className="grid grid-cols-2 gap-2 grid-flow-row my-4">
+              {gql_projects &&
+                gql_projects.map((project) => {
                   return <ProjectCard key={project.name} project={project} />;
                 })}
             </div>

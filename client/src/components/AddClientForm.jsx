@@ -15,6 +15,7 @@ import { Label } from "@@/components/ui/label";
 import { useMutation } from "@apollo/client";
 import { ADD_CLIENT } from "@/graphQL/client.mutation";
 import { GET_CLIENTS } from "@/graphQL/client.query";
+import { User } from "lucide-react";
 
 export function AddClientForm() {
   const [name, setName] = useState("");
@@ -54,7 +55,7 @@ export function AddClientForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default">Add Client</Button>
+        <Button variant="default"><User size={16} />Add Client</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
@@ -103,7 +104,7 @@ export function AddClientForm() {
               </Button>
             </DialogClose>
             <Button size="sm" type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Client"}
+              {loading ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
           {error && <p className="text-red-600 text-sm">{error}</p>}

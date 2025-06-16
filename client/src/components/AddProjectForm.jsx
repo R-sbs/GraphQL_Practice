@@ -10,15 +10,39 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@@/components/ui/dialog";
+import { Textarea } from "@@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@@/components/ui/select";
 import { Input } from "@@/components/ui/input";
 import { Label } from "@@/components/ui/label";
+import { BookmarkPlus } from "lucide-react";
+import { ADD_PROJECT } from "@/graphQL/project.mutation";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_CLIENTS } from "@/graphQL/client.query";
+import { GET_PROJECTS } from "@/graphQL/project.query";
 
-export function AddProjectForm({ projects, setProjects }) {
+export function AddProjectForm({ projects }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState('new');
+  const [clientId, setClientId] = useState(null);
   const [error, setError] = useState("");
+
+  const { loading, data } = useQuery(GET_CLIENTS);
+
+  const [addProject] = useMutation(ADD_PROJECT, {
+    onCompleted: () => {
+      handleClear();
+    },
+    onError: (err) => console.log(err),
+    refetchQueries: [GET_PROJECTS],
+  });
 
   const handleClear = () => {
     setName("");
@@ -28,9 +52,9 @@ export function AddProjectForm({ projects, setProjects }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("p", projects);
-
-    if (!name || !description || !status) {
+    
+    console.log(name, description, status, clientId)
+    if (!name || !description || !status || !clientId) {
       setError("Please fill Missing fields");
       setTimeout(() => {
         setError("");
@@ -38,9 +62,7 @@ export function AddProjectForm({ projects, setProjects }) {
       return;
     }
 
-    setProjects((prev) => prev.concat({ name, description, status }));
-
-    handleClear();
+    addProject({ variables: { name, description, status, clientId } });
     setOpen(false);
   };
 
@@ -51,7 +73,10 @@ export function AddProjectForm({ projects, setProjects }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Add Project</Button>
+        <Button variant="outline" className="border-2">
+          <BookmarkPlus size={16} />
+          Add Project
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
@@ -74,7 +99,7 @@ export function AddProjectForm({ projects, setProjects }) {
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor={`description`}>Description</Label>
-              <Input
+              <Textarea
                 id={`description`}
                 type="text"
                 placeholder="Description of Your Project"
@@ -84,13 +109,40 @@ export function AddProjectForm({ projects, setProjects }) {
             </div>
             <div className="flex flex-col gap-3">
               <Label htmlFor={`status`}>Status</Label>
-              <Input
-                id={`status`}
-                placeholder="Not Started | Ongoing | Completed"
-                value={status}
-                onChange={({ target }) => setStatus(target.value)}
-              />
+              <Select>
+                <SelectTrigger className='w-full mb-4'>
+                  <SelectValue
+                    id={`status`}
+                    placeholder="Select Status of the project"
+                    value={status}
+                    onChange={({ target }) => setStatus(target.value)}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='new'>Not Started</SelectItem>
+                  <SelectItem value='onGoing'>Ongoing</SelectItem>
+                  <SelectItem value='completed'>Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Label htmlFor="clientId">Client</Label>
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  id="clientId"
+                  placeholder="Select Client to whom the project belongs"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {data?.clients.map((client) => (
+                  <SelectItem key={client.name} value={client.id}>{client.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter className="mt-4">
@@ -108,7 +160,7 @@ export function AddProjectForm({ projects, setProjects }) {
               Submit
             </Button>
           </DialogFooter>
-            {error && <span className="text-red-500 text-sm">{error}</span>}
+          {error && <span className="text-red-500 text-sm">{error}</span>}
         </form>
       </DialogContent>
     </Dialog>

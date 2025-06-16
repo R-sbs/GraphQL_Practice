@@ -12,10 +12,10 @@ import { Button } from "./ui/button";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import Spinner from "./Spinner";
 import { GET_CLIENTS } from "@/graphQL/client.query";
-import { Trash, Variable } from "lucide-react";
+import { Trash, Trash2, Variable } from "lucide-react";
 import { DELETE_CLIENT } from "@/graphQL/client.mutation";
 
-const ClientsTable = () => {
+const ClientsTable = (props) => {
   const { loading, error, data } = useQuery(GET_CLIENTS);
   const [deleteClient, { data: deleteData }] = useMutation(DELETE_CLIENT, {
     refetchQueries: [GET_CLIENTS],
@@ -35,7 +35,7 @@ const ClientsTable = () => {
   if (loading) return <Spinner />;
 
   return (
-    <Table>
+    <Table {...props}>
       <TableCaption>A list of your Clients</TableCaption>
       <TableHeader>
         <TableRow>
@@ -55,8 +55,8 @@ const ClientsTable = () => {
               <TableCell>{client.email}</TableCell>
               <TableCell>{client.phone}</TableCell>
               <TableCell className="flex justify-end">
-                <Button type="button" onClick={() => handleDelete(client.id)}>
-                  <Trash className="hover:text-red-500" size={18} />
+                <Button type="button" variant='ghost' className='group hover:bg-red-600 p-0' onClick={() => handleDelete(client.id)}>
+                  <Trash2 className="text-red-600 group-hover:text-white" size={16} />
                 </Button>
               </TableCell>
             </TableRow>
